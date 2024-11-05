@@ -28,6 +28,7 @@ export class TasksController {
   @Delete('/:id')
   deleteAllTasks(@Param('id') id: string) {
     return this.taskService.deleteTaskById(id);
+    ``;
   }
 
   @Patch('/:id/status')
