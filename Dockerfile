@@ -1,25 +1,20 @@
-# Dockerfile
+# Use the Node.js image as the base
+FROM node:18
 
-# Step 1: Use the official Node.js image as the base image
-FROM node:20.18.0
-
-# Step 2: Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# Step 3: Copy package.json and package-lock.json to the working directory
+# Copy package.json and package-lock.json first to utilize Docker layer caching
 COPY package*.json ./
 
-# Step 4: Install dependencies
+# Install dependencies
 RUN npm install
 
-# Step 5: Copy the entire project to the working directory
+# Copy the rest of the application code
 COPY . .
 
-# Step 6: Build the NestJS project
-RUN npm run build
-
-# Step 7: Expose the port that NestJS will run on
+# Expose the application port
 EXPOSE 3000
 
-# Step 8: Start the NestJS application
-CMD ["npm", "run", "start:prod"]
+# Start the application in development mode
+CMD ["npm", "run", "start:dev"]
