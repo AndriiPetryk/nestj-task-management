@@ -2,5 +2,9 @@ version: '3'
 services:
   nestjs-task-management:
     build: .
+    command: npm run start:dev
     ports:
       - "3000:3000"
+    volumes:
+      - .:/app  # Mounts the current directory to the /app directory in the container
+      - /app/node_modules  # Ensures local node_modules aren’t overwritten
