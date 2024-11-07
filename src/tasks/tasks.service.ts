@@ -1,19 +1,30 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { TaskStatus } from './task-status.enum';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { GetTasksGetDto } from './dto/get-tasks-get.dto';
+// import { TaskStatus } from './task-status.enum';
+// import { CreateTaskDto } from './dto/create-task.dto';
+// import { GetTasksGetDto } from './dto/get-tasks-get.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TaskRepository } from './task.repository';
+// import { TaskRepository } from './task.repository';
 import { Task } from './task.entity';
+import { Repository } from 'typeorm';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { TaskStatus } from './task-status.enum';
 
 @Injectable()
 export class TasksService {
   constructor(
-    @InjectRepository(TaskRepository)
-    private taskRepository: TaskRepository,
+    @InjectRepository(Task)
+    private taskRepository: Repository<Task>,
   ) {}
 
-  async getTaskById(filterDto: GetTasksGetDto): Promise<Task[]> {}
+  async getTaskById(id: string): Promise<Task> {
+    const found = await this.taskRepository.findOneBy({ id });
+
+    if (!found) {
+      throw new NotFoundException(`Task with ID "${id}" not found`);
+    }
+
+    return found;
+  }
   // private tasks: Task[] = [];
   // getAllTasks(): Task[] {
   //   return this.tasks;
@@ -55,15 +66,14 @@ export class TasksService {
   //   return task;
   // }
   //
-  // createTask(createTaskDto: CreateTaskDto): Task {
-  //   const { title, description } = createTaskDto;
-  //   const task: Task = {
-  //     id: uuidv4(),
-  //     title,
-  //     description,
-  //     status: TaskStatus.OPEN,
-  //   };
-  //   this.tasks.push(task);
-  //   return task;
-  // }
+  async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
+    const { title, description } = createTaskDto;
+    const task = this.taskRepository.create({
+      title,
+      description,
+      status: TaskStatus.OPEN,
+    });
+    await this.taskRepository.save(task);
+    return task;
+  }
 }
