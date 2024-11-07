@@ -1,46 +1,42 @@
 import {
   Body,
   Controller,
-  // Delete,
+  Delete,
   Get,
   Param,
-  // Patch,
+  Patch,
   Post,
-  // Query,
+  Query,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { Task } from './task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
-// import { Task } from './task-status.enum';
-// import { GetTasksGetDto } from './dto/get-tasks-get.dto';
-// import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import { GetTasksGetDto } from './dto/get-tasks-get.dto';
 
 @Controller('/tasks')
 export class TasksController {
   constructor(private tasksService: TasksService) {}
 
-  // @Get()
-  // getTasks(@Query() filterDto: GetTasksGetDto) {
-  //   if (Object.keys(filterDto).length) {
-  //     return this.taskService.getTasksWithFilter(filterDto);
-  //   }
-  //   return this.taskService.getAllTasks();
-  // }
-  //
-  // @Delete('/:id')
-  // deleteAllTasks(@Param('id') id: string) {
-  //   return this.taskService.deleteTaskById(id);
-  // }
-  //
-  // @Patch('/:id/status')
-  // updateTasStatus(
-  //   @Param('id') id: string,
-  //   @Body() updateTaskStatusDto: UpdateTaskStatusDto,
-  // ) {
-  //   const { status } = updateTaskStatusDto;
-  //   return this.taskService.updateTaskById(id, status);
-  // }
-  //
+  @Get()
+  getTasks(@Query() filterDto: GetTasksGetDto): Promise<Task[]> {
+    return this.tasksService.getAllTasks(filterDto);
+  }
+
+  @Delete('/:id')
+  deleteAllTasks(@Param('id') id: string): Promise<void> {
+    return this.tasksService.deleteTaskById(id);
+  }
+
+  @Patch('/:id/status')
+  updateTasStatus(
+    @Param('id') id: string,
+    @Body() updateTaskStatusDto: UpdateTaskStatusDto,
+  ): Promise<Task> {
+    const { status } = updateTaskStatusDto;
+    return this.tasksService.updateTaskStatus(id, status);
+  }
+
   @Get('/:id')
   async getTaskById(@Param('id') id: string): Promise<Task> {
     return this.tasksService.getTaskById(id);
