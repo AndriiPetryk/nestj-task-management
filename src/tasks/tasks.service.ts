@@ -1,9 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-// import { TaskStatus } from './task-status.enum';
-// import { CreateTaskDto } from './dto/create-task.dto';
-// import { GetTasksGetDto } from './dto/get-tasks-get.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-// import { TaskRepository } from './task.repository';
 import { Task } from './task.entity';
 import { Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -32,8 +28,7 @@ export class TasksService {
       );
     }
 
-    const tasks = await query.getMany();
-    return tasks;
+    return await query.getMany();
   }
 
   async getTaskById(id: string): Promise<Task> {
