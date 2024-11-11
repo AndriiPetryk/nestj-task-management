@@ -1,23 +1,20 @@
 # Use the Node.js image as the base
 FROM node:20.18.0
 
+# Set the working directory
 WORKDIR /app
 
+# Copy package.json and package-lock.json for dependency installation
 COPY package*.json ./
 
-RUN rm -rf node_modules
+# Install dependencies
+RUN npm install && npm rebuild bcrypt --build-from-source
 
-RUN apt-get update && \
-    apt-get install -y build-essential python3 && \
-    npm install && \
-    npm rebuild bcrypt --build-from-source && \
-    apt-get remove -y build-essential python3 && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
-
+# Copy the application code
 COPY . .
 
+# Expose the application port
 EXPOSE 3000
 
+# Run the application in development mode
 CMD ["npm", "run", "start:dev"]
-
