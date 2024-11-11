@@ -22,9 +22,12 @@ export class AuthService {
 
   async createUser(authCredentialsDto: AuthCredentialsDto): Promise<void> {
     const { username, password } = authCredentialsDto;
+    console.log('password', password);
 
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
+    console.log('salt', salt);
+    console.log('hashedPassword', hashedPassword);
 
     const user = this.usersRepository.create({
       username,
@@ -50,8 +53,10 @@ export class AuthService {
   ): Promise<{ accessToken: string }> {
     const { username, password } = authCredentialsDto;
     const user = await this.usersRepository.findOne({ where: { username } });
-    const comparedPassword = await bcrypt.compare(password, user.password);
-
+    let comparedPassword = false;
+    if (user) {
+      comparedPassword = await bcrypt.compare(password, user.password);
+    }
     if (user && comparedPassword) {
       const payload: JwtPayload = { username };
       const accessToken: string = this.jwtService.sign(payload);
