@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskStatus } from './task-status.enum';
 import { GetTasksGetDto } from './dto/get-tasks-get.dto';
+import { User } from '../auth/user.entity';
+import { use } from 'passport';
 
 @Injectable()
 export class TasksService {
@@ -13,9 +15,10 @@ export class TasksService {
     private taskRepository: Repository<Task>,
   ) {}
 
-  async getAllTasks(filterDto: GetTasksGetDto): Promise<Task[]> {
+  async getAllTasks(filterDto: GetTasksGetDto, user: User): Promise<Task[]> {
     const { status, search } = filterDto;
     const query = this.taskRepository.createQueryBuilder('task');
+    query.where({ user });
 
     if (status) {
       query.andWhere('task.status = :status', { status });
@@ -23,7 +26,7 @@ export class TasksService {
 
     if (search) {
       query.andWhere(
-        '(task.title LIKE :search OR task.description LIKE :search)',
+        '(LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search))',
         { search: `%${search}%` },
       );
     }
@@ -31,8 +34,8 @@ export class TasksService {
     return await query.getMany();
   }
 
-  async getTaskById(id: string): Promise<Task> {
-    const found = await this.taskRepository.findOneBy({ id });
+  async getTaskById(id: string, user: User): Promise<Task> {
+    const found = await this.taskRepository.findOne({ where: { id, user } });
 
     if (!found) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
@@ -41,27 +44,32 @@ export class TasksService {
     return found;
   }
 
-  async deleteTaskById(id: string): Promise<void> {
-    const result = await this.taskRepository.delete({ id });
+  async deleteTaskById(id: string, user: User): Promise<void> {
+    const result = await this.taskRepository.delete({ id, user });
 
     if (result.affected === 0) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
     }
   }
 
-  async updateTaskStatus(id: string, status: TaskStatus): Promise<Task> {
-    const task = await this.getTaskById(id);
+  async updateTaskStatus(
+    id: string,
+    status: TaskStatus,
+    user: User,
+  ): Promise<Task> {
+    const task = await this.getTaskById(id, user);
     task.status = status;
     await this.taskRepository.save(task);
     return task;
   }
 
-  async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
+  async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Task> {
     const { title, description } = createTaskDto;
     const task = this.taskRepository.create({
       title,
       description,
       status: TaskStatus.OPEN,
+      user,
     });
     await this.taskRepository.save(task);
     return task;
